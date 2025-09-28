@@ -5,6 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bookmark Manager</title>
     <style>
+        :root {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-tertiary: #2d2d30;
+            --bg-elevated: #3c3c3c;
+            --text-primary: #cccccc;
+            --text-secondary: #a0a0a0;
+            --text-muted: #707070;
+            --accent-primary: #007acc;
+            --accent-secondary: #0e639c;
+            --border: #464647;
+            --border-light: #3e3e42;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --info: #2196f3;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #e9ecef;
+            --bg-elevated: #ffffff;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --border: #e2e8f0;
+            --border-light: #edf2f7;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,49 +44,69 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
             overflow: hidden;
         }
 
-        .header {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: white;
-            padding: 30px;
-            text-align: center;
+        .titlebar {
+            height: 35px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            user-select: none;
+            position: relative;
+            z-index: 1000;
         }
 
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
+        .titlebar .title {
+            font-weight: 600;
         }
 
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1rem;
+        .theme-toggle {
+            position: absolute;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 16px;
         }
 
-        .controls {
-            padding: 30px;
-            border-bottom: 1px solid #e5e7eb;
-            background: #f9fafb;
+        .theme-toggle:hover {
+            background: var(--bg-elevated);
+        }
+
+        .toolbar {
+            height: 50px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            flex-wrap: wrap;
+            overflow-x: auto;
         }
 
         .file-input-wrapper {
             position: relative;
-            display: inline-block;
-            margin-bottom: 20px;
         }
 
         .file-input {
@@ -66,108 +118,137 @@
         .file-input-label {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            padding: 12px 24px;
-            background: #4f46e5;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--accent-primary);
             color: white;
-            border-radius: 8px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
         }
 
         .file-input-label:hover {
-            background: #4338ca;
-            transform: translateY(-2px);
+            background: var(--accent-secondary);
         }
 
-        .control-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-            margin-top: 20px;
+        .search-container {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 400px;
         }
 
         .search-box {
-            flex: 1;
-            min-width: 300px;
-            padding: 12px 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
+            width: 100%;
+            padding: 6px 12px 6px 32px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 13px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: border-color 0.2s ease;
         }
 
         .search-box:focus {
             outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            border-color: var(--accent-primary);
         }
 
-        .btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
             font-size: 14px;
         }
 
+        .btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn:hover {
+            background: var(--bg-tertiary);
+        }
+
         .btn-primary {
-            background: #4f46e5;
+            background: var(--accent-primary);
             color: white;
+            border-color: var(--accent-primary);
         }
 
         .btn-primary:hover {
-            background: #4338ca;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #4b5563;
-        }
-
-        .btn-info {
-            background: #0ea5e9;
-            color: white;
-        }
-
-        .btn-info:hover {
-            background: #0284c7;
+            background: var(--accent-secondary);
+            border-color: var(--accent-secondary);
         }
 
         .btn-success {
-            background: #059669;
+            background: var(--success);
             color: white;
+            border-color: var(--success);
         }
 
         .btn-success:hover {
-            background: #047857;
+            opacity: 0.9;
         }
 
         .btn-danger {
-            background: #dc2626;
+            background: var(--danger);
             color: white;
+            border-color: var(--danger);
         }
 
         .btn-danger:hover {
-            background: #b91c1c;
+            opacity: 0.9;
         }
 
         .btn-warning {
-            background: #d97706;
+            background: var(--warning);
             color: white;
+            border-color: var(--warning);
         }
 
         .btn-warning:hover {
-            background: #b45309;
+            opacity: 0.9;
+        }
+
+        .btn-info {
+            background: var(--info);
+            color: white;
+            border-color: var(--info);
+        }
+
+        .btn-info:hover {
+            opacity: 0.9;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .btn-secondary {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border-color: var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
         }
 
         .filter-tags {
@@ -224,55 +305,90 @@
 
         .main-content {
             display: flex;
-            min-height: 600px;
+            flex: 1;
+            overflow: hidden;
         }
 
         .sidebar {
-            width: 300px;
-            background: #f8fafc;
-            border-right: 1px solid #e5e7eb;
-            padding: 20px;
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        .sidebar h3 {
-            margin-bottom: 15px;
-            color: #374151;
-            font-size: 1.1rem;
+        .sidebar-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
         }
 
         .folder-tree {
             list-style: none;
+            padding: 0;
         }
 
         .folder-item {
-            margin-bottom: 8px;
+            margin: 0;
         }
 
         .folder-item a {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
+            gap: 6px;
+            padding: 6px 16px;
             text-decoration: none;
-            color: #4b5563;
-            border-radius: 6px;
-            transition: all 0.3s ease;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
             cursor: pointer;
+            font-size: 13px;
+            border: none;
+            background: none;
         }
 
-        .folder-item a:hover, .folder-item a.active {
-            background: #4f46e5;
+        .folder-item a:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .folder-item a.active {
+            background: var(--accent-primary);
             color: white;
         }
 
+        .folder-icon {
+            width: 16px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .folder-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .folder-count {
-            background: #e5e7eb;
-            color: #6b7280;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: auto;
+            background: var(--bg-elevated);
+            color: var(--text-muted);
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+            min-width: 16px;
+            text-align: center;
         }
 
         .folder-item a.active .folder-count {
@@ -280,45 +396,87 @@
             color: white;
         }
 
+        .folder-item a:hover .folder-count {
+            background: var(--bg-tertiary);
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-primary);
+        }
+
+        .content-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .stats-bar {
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            overflow-x: auto;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
         .bookmark-grid {
             flex: 1;
-            padding: 20px;
+            padding: 16px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 12px;
             align-content: start;
-            max-height: 80vh;
             overflow-y: auto;
+            background: var(--bg-primary);
         }
 
         .bookmark-card {
-            background: white;
-            border: 2px solid #f3f4f6;
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s ease;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            padding: 12px;
+            transition: all 0.2s ease;
             position: relative;
             cursor: pointer;
         }
 
         .bookmark-card:hover {
-            border-color: #4f46e5;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: var(--border);
+            box-shadow: 0 2px 8px var(--shadow);
         }
 
         .bookmark-card:hover .bookmark-title {
-            color: #4f46e5;
-        }
-
-        .bookmark-card:hover .bookmark-url {
-            color: #3b82f6;
+            color: var(--accent-primary);
         }
 
         .bookmark-card.selected {
-            border-color: #4f46e5;
-            background: #fef7ff;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            border-color: var(--accent-primary);
+            background: var(--bg-secondary);
+            box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.3);
         }
 
         .bookmark-card.discarded {
@@ -493,57 +651,73 @@
 
         .bookmark-header {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
         }
 
         .bookmark-favicon {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            background: #f3f4f6;
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            background: var(--bg-tertiary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            color: #6b7280;
+            font-size: 11px;
+            color: var(--text-muted);
+            flex-shrink: 0;
         }
 
         .bookmark-favicon img {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
         }
 
         .bookmark-title {
             font-weight: 600;
-            color: #1f2937;
-            font-size: 1rem;
+            color: var(--text-primary);
+            font-size: 13px;
             flex: 1;
             line-height: 1.3;
+            margin: 0;
         }
 
         .bookmark-checkbox {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
-            accent-color: #4f46e5;
+            accent-color: var(--accent-primary);
+            flex-shrink: 0;
         }
 
         .bookmark-url {
-            color: #6b7280;
-            font-size: 0.85rem;
-            margin-bottom: 12px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-bottom: 8px;
             word-break: break-all;
-            line-height: 1.4;
+            line-height: 1.3;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .bookmark-folder {
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .bookmark-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.8rem;
-            color: #9ca3af;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            border-top: 1px solid var(--border-light);
+            padding-top: 8px;
         }
 
         .bookmark-date {
@@ -554,36 +728,53 @@
 
         .bookmark-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .bookmark-actions button {
-            padding: 4px 8px;
-            border: none;
-            border-radius: 4px;
+            padding: 2px 6px;
+            border: 1px solid var(--border);
+            border-radius: 3px;
             cursor: pointer;
-            font-size: 11px;
-            transition: all 0.3s ease;
+            font-size: 10px;
+            transition: all 0.2s ease;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+        }
+
+        .bookmark-actions button:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .btn-details {
+            background: var(--info);
+            color: white;
+            border-color: var(--info);
+        }
+
+        .btn-select {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
         }
 
         .btn-discard {
-            background: #fca5a5;
-            color: #991b1b;
-        }
-
-        .btn-discard:hover {
-            background: #ef4444;
+            background: var(--danger);
             color: white;
+            border-color: var(--danger);
         }
 
         .btn-restore {
-            background: #86efac;
-            color: #166534;
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
         }
 
-        .btn-restore:hover {
-            background: #22c55e;
+        .btn-noidea {
+            background: var(--text-muted);
             color: white;
+            border-color: var(--text-muted);
         }
 
         .selection-bar {
@@ -1100,50 +1291,50 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🔖 Bookmark Manager</h1>
-            <p>Organize, clean up, and manage your bookmarks with ease</p>
+    <div class="app-container">
+        <div class="titlebar">
+            <span class="title">🔖 Bookmark Manager</span>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌓</button>
         </div>
 
-        <div class="controls">
+        <div class="toolbar">
             <div class="file-input-wrapper">
                 <input type="file" id="bookmarkFile" class="file-input" accept=".html">
                 <label for="bookmarkFile" class="file-input-label">
-                    📁 Load Bookmark File
+                    📁 Load File
                 </label>
             </div>
 
-            <div class="control-row">
-                <input type="text" id="searchBox" class="search-box" placeholder="Search bookmarks by title, URL, or folder...">
-                <button class="btn btn-primary" onclick="selectAll()">Select All</button>
-                <button class="btn btn-secondary" onclick="clearSelection()">Clear Selection</button>
-                <button class="btn btn-success" onclick="showGroupModal()">Create Group</button>
-                <button class="btn btn-primary" onclick="showDuplicatesView()">View Duplicates</button>
-                <button class="btn btn-warning" onclick="autoResolveDuplicates()">Auto-Resolve Dupes</button>
-                <button class="btn btn-danger" onclick="deleteDiscardedPermanently()">Delete Discarded</button>
-                <button class="btn btn-success" onclick="showExportModal()">📤 Export Final</button>
-                <button class="btn btn-warning" onclick="exportBookmarks()">Export Clean</button>
-                <button class="btn btn-danger" onclick="exportDiscarded()">Export Discarded</button>
-                <button class="btn btn-info" onclick="showHowToGuide()">❓ Help</button>
-                <button class="btn btn-secondary" onclick="clearSession()">Clear Session</button>
+            <div class="search-container">
+                <div class="search-icon">🔍</div>
+                <input type="text" id="searchBox" class="search-box" placeholder="Search bookmarks...">
             </div>
 
-            <div class="filter-tags" id="filterTags"></div>
-
-            <div class="stats" id="statsContainer"></div>
+            <button class="btn btn-primary" onclick="selectAll()">Select All</button>
+            <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+            <button class="btn btn-success" onclick="showExportModal()">📤 Export Final</button>
+            <button class="btn btn-warning" onclick="exportBookmarks()">Export Clean</button>
+            <button class="btn btn-danger" onclick="exportDiscarded()">Export Discarded</button>
+            <button class="btn btn-info" onclick="showHowToGuide()">❓ Help</button>
+            <button class="btn btn-secondary" onclick="clearSession()">Clear Session</button>
         </div>
 
         <div class="main-content">
             <div class="sidebar">
-                <h3>📂 Folders</h3>
-                <ul class="folder-tree" id="folderTree"></ul>
+                <div class="sidebar-header">📂 Folders</div>
+                <div class="sidebar-content">
+                    <ul class="folder-tree" id="folderTree"></ul>
+                </div>
             </div>
 
-            <div class="bookmark-grid" id="bookmarkGrid">
-                <div class="empty-state">
-                    <h3>📚 No bookmarks loaded</h3>
-                    <p>Please select a bookmark file to get started</p>
+            <div class="content-area">
+                <div class="stats-bar" id="statsContainer"></div>
+                
+                <div class="bookmark-grid" id="bookmarkGrid">
+                    <div class="empty-state">
+                        <h3>📚 No bookmarks loaded</h3>
+                        <p>Please select a bookmark file to get started</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1606,8 +1797,22 @@
             });
         }
 
+        // Theme management
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
             document.getElementById('bookmarkFile').addEventListener('change', loadBookmarkFile);
             document.getElementById('searchBox').addEventListener('input', filterBookmarks);
             document.getElementById('groupForm').addEventListener('submit', createGroup);
@@ -1817,7 +2022,8 @@
             allItem.className = 'folder-item';
             allItem.innerHTML = `
                 <a href="#" onclick="filterByFolder('all')" class="${currentFilter === 'all' ? 'active' : ''}">
-                    📁 All Bookmarks
+                    <span class="folder-icon">📁</span>
+                    <span class="folder-name">All Bookmarks</span>
                     <span class="folder-count">${allBookmarks.length}</span>
                 </a>
             `;
@@ -1830,8 +2036,9 @@
                 duplicatesItem.className = 'folder-item';
                 duplicatesItem.innerHTML = `
                     <a href="#" onclick="filterByTag('duplicates')" class="${currentFilter === 'duplicates' ? 'active' : ''}">
-                        ⚠️ Duplicates
-                        <span class="folder-count" style="background: #ef4444; color: white;">${duplicatesCount}</span>
+                        <span class="folder-icon">⚠️</span>
+                        <span class="folder-name">Duplicates</span>
+                        <span class="folder-count" style="background: var(--danger); color: white;">${duplicatesCount}</span>
                     </a>
                 `;
                 folderTree.appendChild(duplicatesItem);
@@ -1844,8 +2051,9 @@
                 noIdeaItem.className = 'folder-item';
                 noIdeaItem.innerHTML = `
                     <a href="#" onclick="filterByTag('noidea')" class="${currentFilter === 'noidea' ? 'active' : ''}">
-                        🤷 NoIdea
-                        <span class="folder-count" style="background: #6b7280; color: white;">${noIdeaCount}</span>
+                        <span class="folder-icon">🤷</span>
+                        <span class="folder-name">NoIdea</span>
+                        <span class="folder-count" style="background: var(--text-muted); color: white;">${noIdeaCount}</span>
                     </a>
                 `;
                 folderTree.appendChild(noIdeaItem);
@@ -1863,12 +2071,13 @@
                 const folderItem = document.createElement('li');
                 folderItem.className = 'folder-item';
                 
-                const indent = '　'.repeat(folderData.level); // Japanese space for indentation
-                const duplicateBadge = folderData.duplicates > 0 ? ` <span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px;">⚠️${folderData.duplicates}</span>` : '';
+                const duplicateBadge = folderData.duplicates > 0 ? 
+                    ` <span style="background: var(--danger); color: white; padding: 1px 4px; border-radius: 8px; font-size: 9px; margin-left: 4px;">⚠️${folderData.duplicates}</span>` : '';
                 
                 folderItem.innerHTML = `
                     <a href="#" onclick="filterByFolder('${folderName}')" class="${currentFilter === folderName ? 'active' : ''}">
-                        ${indent}📂 ${folderName.split(' → ').pop()}
+                        <span class="folder-icon">📂</span>
+                        <span class="folder-name">${folderName.split(' → ').pop()}</span>
                         <span class="folder-count">${folderData.count}</span>
                         ${duplicateBadge}
                     </a>
@@ -2009,36 +2218,36 @@
             
             container.innerHTML = `
                 <div class="stat-item">
-                    <span class="stat-number">${totalCount}</span>
-                    <span class="stat-label">Total</span>
+                    <span>Total:</span>
+                    <span class="stat-value">${totalCount}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">${selectedCount}</span>
-                    <span class="stat-label">Selected</span>
+                    <span>Selected:</span>
+                    <span class="stat-value">${selectedCount}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">${cleanCount}</span>
-                    <span class="stat-label">Clean</span>
+                    <span>Clean:</span>
+                    <span class="stat-value">${cleanCount}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number" style="color: #ef4444; font-weight: bold;">${duplicatesCount}</span>
-                    <span class="stat-label">Duplicates</span>
+                    <span>Duplicates:</span>
+                    <span class="stat-value" style="color: var(--danger);">${duplicatesCount}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number" style="color: #ef4444; font-weight: bold; background: #fef2f2; padding: 4px 8px; border-radius: 8px; border: 1px solid #ef4444;">${discardedCount}</span>
-                    <span class="stat-label">🗑️ Discarded</span>
+                    <span>🗑️ Discarded:</span>
+                    <span class="stat-value" style="color: var(--danger);">${discardedCount}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number" style="color: #6b7280; font-weight: bold; background: #f9fafb; padding: 4px 8px; border-radius: 8px; border: 1px solid #6b7280;">${noIdeaCount}</span>
-                    <span class="stat-label">❓ NoIdea</span>
+                    <span>❓ NoIdea:</span>
+                    <span class="stat-value" style="color: var(--text-muted);">${noIdeaCount}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">${folders.size}</span>
-                    <span class="stat-label">Folders</span>
+                    <span>Folders:</span>
+                    <span class="stat-value">${folders.size}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">${duplicateGroups.size}</span>
-                    <span class="stat-label">Dup Groups</span>
+                    <span>Dup Groups:</span>
+                    <span class="stat-value">${duplicateGroups.size}</span>
                 </div>
             `;
         }
