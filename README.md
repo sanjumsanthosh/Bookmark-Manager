@@ -4,8 +4,12 @@
 bookmark export — no install, no account, nothing uploaded.
 
 ```
-main:/  →  https://sanjumsanthosh.github.io/Bookmark-Manager/
+main:/       →  https://sanjumsanthosh.github.io/Bookmark-Manager/        the tool
+main:/intro  →  https://sanjumsanthosh.github.io/Bookmark-Manager/intro/  what it does
 ```
+
+The tool lives at the site root on purpose — opening the URL should give you the cleaner, not a
+pitch. `/intro/` is the explanation for anyone who wants context first.
 
 ## Why
 

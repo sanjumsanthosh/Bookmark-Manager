@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bookmark Manager — find the duplicates Chrome won't</title>
+<meta name="description" content="Drop in a Chrome bookmark export and see what's actually in there: the same link saved three times, 400 bookmarks in one folder, the same page under three titles. Runs entirely in your browser.">
+<meta name="theme-color" content="#0f1720">
+<meta property="og:title" content="Bookmark Manager — find the duplicates Chrome won't">
+<meta property="og:description" content="Single-file browser tool for a Chrome bookmark export. Nothing uploaded.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔖</text></svg>">
+<style>
+  :root {
+    --bg: #0f1720;
+    --panel: #16212d;
+    --panel-2: #1b2836;
+    --line: #27384a;
+    --text: #e6edf5;
+    --muted: #8ba0b6;
+    --lime: #a3e635;
+    --lime-dim: #4d7c0f;
+    --red: #f87171;
+    --amber: #fbbf24;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(880px 480px at 15% -10%, rgba(163,230,53,.10), transparent 60%),
+      radial-gradient(700px 420px at 92% 2%, rgba(56,189,248,.08), transparent 55%),
+      var(--bg);
+    color: var(--text); font-family: var(--sans); font-size: 17px; line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--lime); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { width: min(1000px, 92vw); margin: 0 auto; }
+
+  header { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 650; letter-spacing: -.015em; }
+  .tag { font-family: var(--mono); font-size: .6rem; letter-spacing: .12em; padding: 3px 8px; border-radius: 999px; background: rgba(163,230,53,.12); color: var(--lime); border: 1px solid rgba(163,230,53,.3); }
+  nav { display: flex; gap: 20px; font-size: .86rem; }
+  nav a { color: var(--muted); }
+  nav a:hover { color: var(--text); text-decoration: none; }
+
+  .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 38px; align-items: center; padding: 58px 0 26px; }
+  .kicker { font-family: var(--mono); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--lime); margin: 0 0 12px; }
+  h1 { font-size: clamp(2rem, 4.6vw, 3.1rem); line-height: 1.06; letter-spacing: -.04em; margin: 0 0 18px; font-weight: 700; }
+  h1 em { font-style: normal; color: var(--lime); }
+  .lede { color: var(--muted); margin: 0 0 26px; max-width: 52ch; }
+  .lede strong { color: var(--text); font-weight: 600; }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .btn { display: inline-block; font-size: .9rem; font-weight: 650; padding: 11px 18px; border-radius: 9px; background: var(--lime); color: #101a06; }
+  .btn:hover { text-decoration: none; filter: brightness(1.06); }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--muted); }
+  .microlabel { font-family: var(--mono); font-size: .72rem; color: var(--muted); margin-top: 14px; }
+
+  /* browser mock */
+  .browser { background: var(--panel); border: 1px solid var(--line); border-radius: 13px; overflow: hidden; box-shadow: 0 26px 60px -44px #000; }
+  .bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2); }
+  .bar i { width: 9px; height: 9px; border-radius: 50%; background: #33475c; display: block; }
+  .bar span { font-family: var(--mono); font-size: .66rem; color: var(--muted); margin-left: 6px; }
+  .body { padding: 16px; display: grid; gap: 10px; }
+  .group { border: 1px solid var(--line); border-radius: 9px; padding: 12px 13px; background: rgba(255,255,255,.015); }
+  .group-head { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 9px; }
+  .chip { padding: 2px 7px; border-radius: 4px; border: 1px solid; }
+  .chip.url { color: var(--red); border-color: rgba(248,113,113,.35); background: rgba(248,113,113,.1); }
+  .chip.dom { color: var(--amber); border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.1); }
+  .chip.tit { color: var(--lime); border-color: rgba(163,230,53,.35); background: rgba(163,230,53,.1); }
+  .row { display: flex; align-items: baseline; gap: 8px; padding: 5px 0; border-top: 1px dashed rgba(255,255,255,.06); font-size: .8rem; }
+  .row:first-of-type { border-top: none; }
+  .row .t { flex: 1; color: #cfdae6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .u { font-family: var(--mono); font-size: .66rem; color: var(--muted); }
+  .row .x { font-family: var(--mono); font-size: .64rem; color: var(--red); }
+
+  section { padding: 54px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: clamp(1.28rem, 3vw, 1.72rem); letter-spacing: -.025em; margin: 0 0 12px; font-weight: 680; }
+  .sub { color: var(--muted); max-width: 66ch; margin: 0 0 30px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 11px; padding: 18px 20px; }
+  .card h3 { margin: 0 0 7px; font-size: .96rem; }
+  .card p { margin: 0; font-size: .86rem; color: var(--muted); line-height: 1.55; }
+  .card .n { font-family: var(--mono); font-size: .64rem; letter-spacing: .1em; color: var(--lime); display: block; margin-bottom: 6px; }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+  pre.code { background: #0a1119; border: 1px solid var(--line); border-radius: 11px; padding: 17px 19px; font-family: var(--mono); font-size: .78rem; line-height: 1.85; overflow-x: auto; margin: 0; color: #c9d6e4; }
+  pre.code .c { color: #6b8299; }
+  pre.code .p { color: var(--lime); }
+
+  ul.checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 9px; }
+  ul.checks li { position: relative; padding-left: 22px; color: var(--muted); font-size: .89rem; }
+  ul.checks li::before { content: "✓"; position: absolute; left: 0; color: var(--lime); }
+
+  table { width: 100%; border-collapse: collapse; font-size: .87rem; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { color: var(--text); }
+
+  footer { border-top: 1px solid var(--line); padding: 26px 0 52px; font-family: var(--mono); font-size: .74rem; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 28px; }
+    .grid { grid-template-columns: 1fr 1fr; }
+    .two { grid-template-columns: 1fr; }
+    nav a:not(:last-child) { display: none; }
+  }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">🔖 Bookmark Manager <span class="tag">RUNS LOCALLY</span></div>
+    <nav>
+      <a href="#how">how it works</a>
+      <a href="#limits">limits</a>
+      <a href="https://github.com/sanjumsanthosh/Bookmark-Manager">github ↗</a>
+      <a href="../">open the tool →</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" style="border-top:none">
+      <div>
+        <p class="kicker">chrome export · no upload</p>
+        <h1>Chrome knows how many.<br><em>Not what's duplicate.</em></h1>
+        <p class="lede">
+          Export your bookmarks, drop the file in, and see the damage: the same article saved three
+          times, <strong>400 links in one flat folder</strong>, the same page under three different
+          titles. Everything is parsed in the page — nothing is uploaded.
+        </p>
+        <div class="cta">
+          <a class="btn" href="../">Open the cleaner →</a>
+          <a class="btn ghost" href="#how">How it works</a>
+        </div>
+        <p class="microlabel">single file · no install · no account</p>
+      </div>
+
+      <div class="browser">
+        <div class="bar"><i></i><i></i><i></i><span>bookmarks_11_15_26.html</span></div>
+        <div class="body">
+          <div class="group">
+            <div class="group-head"><span class="chip url">url</span> exact duplicates</div>
+            <div class="row"><span class="t">The Grug Brained Developer</span><span class="u">grugbrain.dev</span></div>
+            <div class="row"><span class="t">grugbrain</span><span class="u">grugbrain.dev</span><span class="x">dup</span></div>
+          </div>
+          <div class="group">
+            <div class="group-head"><span class="chip dom">domain</span> same site, 34 saves</div>
+            <div class="row"><span class="t">Postgres index internals</span><span class="u">pgedge.com</span></div>
+            <div class="row"><span class="t">B-tree vs LSM</span><span class="u">pgedge.com</span></div>
+          </div>
+          <div class="group">
+            <div class="group-head"><span class="chip tit">title</span> same page, renamed</div>
+            <div class="row"><span class="t">Designing Data-Intensive Applications</span><span class="u">dataintensive.net</span></div>
+            <div class="row"><span class="t">DDIA — the book</span><span class="u">dataintensive.net</span><span class="x">dup</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how">
+      <p class="kicker">three steps, one file</p>
+      <h2>From export to a clean list</h2>
+      <div class="grid">
+        <div class="card"><span class="n">01</span><h3>Export from Chrome</h3><p>Bookmarks → Bookmark manager → ⋮ → Export bookmarks. You get a standard HTML file.</p></div>
+        <div class="card"><span class="n">02</span><h3>Drop it in</h3><p>The page parses it with the browser's own <code>DOMParser</code>. No server, no fetch, no upload.</p></div>
+        <div class="card"><span class="n">03</span><h3>Work the tree</h3><p>Walk folders, review duplicates by group, and delete the ones you don't need in Chrome.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <p class="kicker">what counts as a duplicate</p>
+      <h2>Three kinds of mess</h2>
+      <div class="two">
+        <table>
+          <thead><tr><th>Kind</th><th>What it catches</th></tr></thead>
+          <tbody>
+            <tr><td><b>URL</b></td><td>Exact same link saved twice</td></tr>
+            <tr><td><b>Domain</b></td><td>Many links from one site — "read later" decay</td></tr>
+            <tr><td><b>Title</b></td><td>Same page under slightly different names</td></tr>
+          </tbody>
+        </table>
+        <ul class="checks">
+          <li>Grouped view, so you decide per group instead of bookmark by bookmark.</li>
+          <li>Folder tree with counts, so the flat 400-item folder is obvious.</li>
+          <li>Badges separate a true duplicate from a same-domain cluster.</li>
+          <li>Nothing is deleted for you — the list is the deliverable.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="limits">
+      <p class="kicker">honest limits</p>
+      <h2>What it doesn't do</h2>
+      <div class="grid">
+        <div class="card"><h3>Chrome-tested only</h3><p>It parses the standard Netscape bookmark format other browsers emit, but only Chrome was exercised.</p></div>
+        <div class="card"><h3>Doesn't write back</h3><p>No export of a cleaned file. Chrome's own manager still does the deleting.</p></div>
+        <div class="card"><h3>No persistence</h3><p>Reload and it's empty — there is no storage, no sync, no account.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <p class="kicker">run it yourself</p>
+      <h2>One file, or a local server</h2>
+      <div class="two">
+        <pre class="code"><span class="c"># clone and open the file directly</span>
+<span class="p">$</span> git clone https://github.com/sanjumsanthosh/Bookmark-Manager
+<span class="p">$</span> cd Bookmark-Manager
+<span class="p">$</span> python3 -m http.server 8000
+
+<span class="c"># or just open index.html in Chrome</span></pre>
+        <div class="card">
+          <h3>Privacy</h3>
+          <p>The bookmark file never leaves the tab. Parsing happens in-page, there is no backend, and
+          no analytics script is loaded.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>example groups shown — your export decides the real ones</span>
+    <span><a href="../">open the tool</a> · <a href="https://github.com/sanjumsanthosh/Bookmark-Manager">source</a></span>
+  </footer>
+</div>
+</body>
+</html>
